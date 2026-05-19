@@ -14,12 +14,21 @@ install host ip:
         --flake .#{{host}} \
         root@{{ip}}
 
-# Push a config update to a running host.
+# Push a config update to a running host (builds locally).
 # Example: just deploy example 1.2.3.4
 deploy host ip:
     nixos-rebuild switch \
         --flake .#{{host}} \
         --target-host root@{{ip}} \
+        --use-remote-sudo
+
+# Push a config update, building on the remote host (use this on non-x86 machines).
+# Example: just deploy-remote example 1.2.3.4
+deploy-remote host ip:
+    nixos-rebuild switch \
+        --flake .#{{host}} \
+        --target-host root@{{ip}} \
+        --build-host root@{{ip}} \
         --use-remote-sudo
 
 # Same as deploy but only build; don't activate (dry run / sanity check).
