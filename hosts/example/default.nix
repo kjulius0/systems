@@ -30,10 +30,11 @@
       RemainAfterExit = true;
       WorkingDirectory = "/srv/myapp";
       ExecStartPre = pkgs.writeShellScript "myapp-pull" ''
+        token=$(cat /etc/secrets/github-token)
         if [ -d /srv/myapp ]; then
-          ${pkgs.git}/bin/git -C /srv/myapp pull
+          ${pkgs.git}/bin/git -C /srv/myapp pull https://x-access-token:$token@github.com/you/myapp
         else
-          ${pkgs.git}/bin/git clone https://github.com/you/myapp /srv/myapp
+          ${pkgs.git}/bin/git clone https://x-access-token:$token@github.com/you/myapp /srv/myapp
         fi
       '';
       ExecStart = "${pkgs.docker-compose}/bin/docker-compose up -d --build --remove-orphans";
