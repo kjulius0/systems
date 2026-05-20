@@ -65,5 +65,31 @@
     };
   };
 
+  systemd.services.db-backup = {
+    description = "PostgreSQL backup to S3";
+    after = [ "mnt-s3.mount" "docker.service" "cookie-radar.service" ];
+    requires = [ "mnt-s3.mount" ];
+    serviceConfig = {
+      Type = "oneshot";
+      WorkingDirectory = "/srv/cookie-radar";
+      ExecStart = pkgs.writeShellScript "db-backup" ''
+        set -euo pipefail
+        ${pkgs.docker-compose}/bin/docker-compose exec -T postgres \
+          pg_dump -U cookie_radar -d cookie_radar \
+          > /mnt/s3/cookie_radar_$(${pkgs.coreutils}/bin/date +%F_%H-%M-%S).sql
+        ${pkgs.findutils}/bin/find /mnt/s3 -name "cookie_radar_*.sql" -mtime +7 -delete
+      '';
+    };
+  };
+
+  systemd.timers.db-backup = {
+    description = "Nightly PostgreSQL backup at 01:00 UTC";
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "*-*-* 01:00:00 UTC";
+      Persistent = true;
+    };
+  };
+
   system.stateVersion = "25.05";
 }
