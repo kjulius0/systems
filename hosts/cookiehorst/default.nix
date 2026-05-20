@@ -4,6 +4,24 @@
 
   networking.hostName = "cookiehorst";
 
+  environment.systemPackages = with pkgs; [ s3fs ];
+
+  fileSystems."/mnt/s3" = {
+    device = "backup";
+    fsType = "fuse.s3fs";
+    options = [
+      "_netdev"
+      "allow_other"
+      "nonempty"
+      "passwd_file=/etc/secrets/s3fs-creds"
+      "url=https://storage.dieter-datenschutz.de"
+      "use_path_request_style"
+      "dbglevel=info"
+      "multipart_size=5000"
+      "nofail"
+    ];
+  };
+
   users.users.admin = {
     isNormalUser = true;
     extraGroups = [ "wheel" "docker" ];
