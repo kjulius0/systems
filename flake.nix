@@ -17,6 +17,7 @@
       nixosConfigurations = {
         # Add hosts here. Each host lives in hosts/<name>/.
         # example = mkHost "example";
+        cookiehorst = mkHost "cookiehorst";
       };
     };
 }
