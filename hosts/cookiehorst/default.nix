@@ -24,25 +24,41 @@
 
   users.users.admin = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "docker" ];
+    extraGroups = [
+      "wheel"
+      "docker"
+    ];
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1exitNTE5AAAAINBWZVz+NY4jhXnFoIw6O7ZTMzUdDmECXIBWTth1j6cw work@rakka"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBWZVz+NY4jhXnFoIw6O7ZTMzUdDmECXIBWTth1j6cw work@rakka"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG1/FazxEZSGjnfqaR5tM8aifZCY+hns1DfCo87z8Hr1 marc@LWM"
     ];
   };
 
-  security.sudo.extraRules = [{
-    users = [ "admin" ];
-    commands = [{ command = "ALL"; options = [ "NOPASSWD" ]; }];
-  }];
+  security.sudo.extraRules = [
+    {
+      users = [ "admin" ];
+      commands = [
+        {
+          command = "ALL";
+          options = [ "NOPASSWD" ];
+        }
+      ];
+    }
+  ];
 
   virtualisation.docker.enable = true;
 
-  networking.firewall.allowedTCPPorts = [ 80 443 ];
+  networking.firewall.allowedTCPPorts = [
+    80
+    443
+  ];
 
   systemd.services.cookie-radar = {
     description = "cookie-radar docker compose stack";
-    after = [ "docker.service" "network-online.target" ];
+    after = [
+      "docker.service"
+      "network-online.target"
+    ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "oneshot";
@@ -60,7 +76,8 @@
           ${pkgs.git}/bin/git clone --branch dieter-version https://x-access-token:$token@github.com/workmh155/cookie-radar /srv/cookie-radar
         fi
       '';
-      ExecStart = "${pkgs.docker-compose}/bin/docker-compose up -d --build --remove-orphans";
+      # ExecStart = "${pkgs.docker-compose}/bin/docker-compose up -d --build --remove-orphans";
+      ExecStart = "${pkgs.docker-compose}/bin/docker-compose -f docker-compose.yml -f docker-compose.server.yml up --build -d --remove-orphans";
       ExecStop = "${pkgs.docker-compose}/bin/docker-compose down";
     };
   };

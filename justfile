@@ -10,7 +10,7 @@
 # The target must already be running Linux with an SSH server.
 # Example: just install cookiehorst 1.2.3.4 ~/.ssh/id_ed25519
 install host ip key='~/.ssh/id_ed25519':
-    nix shell github:nix-community/nixos-anywhere nixpkgs#openssh -c \
+    SSH_AUTH_SOCK= nix shell github:nix-community/nixos-anywhere nixpkgs#openssh -c \
         nixos-anywhere \
         --flake .#{{host}} \
         -i {{key}} \
