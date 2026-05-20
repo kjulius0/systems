@@ -8,7 +8,7 @@
     isNormalUser = true;
     extraGroups = [ "wheel" "docker" ];
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBWZVz+NY4jhXnFoIw6O7ZTMzUdDmECXIBWTth1j6cw work@rakka"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1exitNTE5AAAAINBWZVz+NY4jhXnFoIw6O7ZTMzUdDmECXIBWTth1j6cw work@rakka"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG1/FazxEZSGjnfqaR5tM8aifZCY+hns1DfCo87z8Hr1 marc@LWM"
     ];
   };

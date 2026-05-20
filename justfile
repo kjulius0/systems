@@ -8,10 +8,12 @@
 
 # Fresh NixOS install onto a machine reachable at <ip> (e.g. a rescue boot).
 # The target must already be running Linux with an SSH server.
-# Example: just install example 1.2.3.4
-install host ip:
-    nix run github:nix-community/nixos-anywhere -- \
+# Example: just install cookiehorst 1.2.3.4 ~/.ssh/id_ed25519
+install host ip key='~/.ssh/id_ed25519':
+    nix shell github:nix-community/nixos-anywhere nixpkgs#openssh -c \
+        nixos-anywhere \
         --flake .#{{host}} \
+        -i {{key}} \
         root@{{ip}}
 
 # Push a config update to a running host (builds locally).
