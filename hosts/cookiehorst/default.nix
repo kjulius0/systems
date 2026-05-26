@@ -1,4 +1,7 @@
 { pkgs, ... }:
+let
+  cookieRadarDir = "/home/admin/cookie-radar";
+in
 {
   imports = [ ./hardware.nix ];
 
@@ -61,17 +64,18 @@
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      WorkingDirectory = "-/srv/cookie-radar";
+      User = "admin";
+      WorkingDirectory = "-${cookieRadarDir}";
       ExecStartPre = pkgs.writeShellScript "cookie-radar-pull" ''
         token=$(cat /etc/secrets/github-token)
-        if [ -d /srv/cookie-radar/.git ]; then
-          ${pkgs.git}/bin/git -C /srv/cookie-radar remote set-url origin https://x-access-token:$token@github.com/workmh155/cookie-radar
-          ${pkgs.git}/bin/git -C /srv/cookie-radar fetch origin
-          ${pkgs.git}/bin/git -C /srv/cookie-radar checkout dieter-version
-          ${pkgs.git}/bin/git -C /srv/cookie-radar reset --hard origin/dieter-version
+        if [ -d ${cookieRadarDir}/.git ]; then
+          ${pkgs.git}/bin/git -C ${cookieRadarDir} remote set-url origin https://x-access-token:$token@github.com/workmh155/cookie-radar
+          ${pkgs.git}/bin/git -C ${cookieRadarDir} fetch origin
+          ${pkgs.git}/bin/git -C ${cookieRadarDir} checkout dieter-version
+          ${pkgs.git}/bin/git -C ${cookieRadarDir} reset --hard origin/dieter-version
         else
-          mkdir -p /srv/cookie-radar
-          ${pkgs.git}/bin/git clone --branch dieter-version https://x-access-token:$token@github.com/workmh155/cookie-radar /srv/cookie-radar
+          mkdir -p ${cookieRadarDir}
+          ${pkgs.git}/bin/git clone --branch dieter-version https://x-access-token:$token@github.com/workmh155/cookie-radar ${cookieRadarDir}
         fi
       '';
       # ExecStart = "${pkgs.docker-compose}/bin/docker-compose up -d --build --remove-orphans";
@@ -82,11 +86,16 @@
 
   systemd.services.db-backup = {
     description = "PostgreSQL backup to S3";
-    after = [ "s3fs.service" "docker.service" "cookie-radar.service" ];
+    after = [
+      "s3fs.service"
+      "docker.service"
+      "cookie-radar.service"
+    ];
     requires = [ "s3fs.service" ];
     serviceConfig = {
       Type = "oneshot";
-      WorkingDirectory = "/srv/cookie-radar";
+      User = "admin";
+      WorkingDirectory = "${cookieRadarDir}";
       ExecStart = pkgs.writeShellScript "db-backup" ''
         set -euo pipefail
         ${pkgs.docker-compose}/bin/docker-compose exec -T postgres \
