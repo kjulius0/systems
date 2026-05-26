@@ -4,21 +4,18 @@
 
   networking.hostName = "cookiehorst";
 
-  environment.systemPackages = with pkgs; [ s3fs ];
+  environment.systemPackages = with pkgs; [ go-task ];
 
-  fileSystems."/mnt/s3" = {
-    device = "backup";
-    fsType = "fuse.s3fs";
-    options = [
-      "_netdev"
-      "allow_other"
-      "nonempty"
-      "passwd_file=/etc/secrets/s3fs-creds"
-      "url=https://storage.dieter-datenschutz.de"
-      "use_path_request_style"
+  services.s3fs = {
+    enable = true;
+    keyPath = "/etc/secrets/s3fs-creds";
+    mountPath = "/mnt/s3";
+    bucket = "scannerbackup";
+    url = "https://storage.dieter-datenschutz.de";
+    extraOptions = [
       "dbglevel=info"
       "multipart_size=5000"
-      "nofail"
+      "nonempty"
     ];
   };
 
@@ -55,6 +52,7 @@
 
   systemd.services.cookie-radar = {
     description = "cookie-radar docker compose stack";
+    wants = [ "network-online.target" ];
     after = [
       "docker.service"
       "network-online.target"
@@ -84,8 +82,8 @@
 
   systemd.services.db-backup = {
     description = "PostgreSQL backup to S3";
-    after = [ "mnt-s3.mount" "docker.service" "cookie-radar.service" ];
-    requires = [ "mnt-s3.mount" ];
+    after = [ "s3fs.service" "docker.service" "cookie-radar.service" ];
+    requires = [ "s3fs.service" ];
     serviceConfig = {
       Type = "oneshot";
       WorkingDirectory = "/srv/cookie-radar";

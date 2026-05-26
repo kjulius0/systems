@@ -19,7 +19,7 @@ install host ip key='~/.ssh/id_ed25519':
 # Push a config update to a running host (builds locally).
 # Example: just deploy example 1.2.3.4
 deploy host ip:
-    nixos-rebuild switch \
+    nix run nixpkgs#nixos-rebuild -- switch \
         --flake .#{{host}} \
         --target-host root@{{ip}} \
         --use-remote-sudo
@@ -27,7 +27,7 @@ deploy host ip:
 # Push a config update, building on the remote host (use this on non-x86 machines).
 # Example: just deploy-remote example 1.2.3.4
 deploy-remote host ip:
-    nixos-rebuild switch \
+    nix run nixpkgs#nixos-rebuild -- switch \
         --flake .#{{host}} \
         --target-host root@{{ip}} \
         --build-host root@{{ip}} \
@@ -35,7 +35,7 @@ deploy-remote host ip:
 
 # Same as deploy but only build; don't activate (dry run / sanity check).
 build host:
-    nixos-rebuild build --flake .#{{host}}
+    nix run nixpkgs#nixos-rebuild -- build --flake .#{{host}}
 
 # Open an SSH shell to a host.
 # Example: just ssh example 1.2.3.4

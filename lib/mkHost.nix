@@ -5,6 +5,7 @@ nixpkgs.lib.nixosSystem {
   modules = [
     disko.nixosModules.disko
     ../modules/base.nix
+    ../modules/s3fs.nix
     ../hosts/${name}
   ];
 }
