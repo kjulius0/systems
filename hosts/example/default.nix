@@ -1,4 +1,7 @@
 { pkgs, ... }:
+let
+  ssh-keys = import ../../lib/ssh-keys.nix;
+in
 {
   imports = [ ./hardware.nix ];
 
@@ -10,9 +13,7 @@
   users.users.admin = {
     isNormalUser = true;
     extraGroups = [ "wheel" "docker" ];
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBWZVz+NY4jhXnFoIw6O7ZTMzUdDmECXIBWTth1j6cw work@rakka"
-    ];
+    openssh.authorizedKeys.keys = [ ssh-keys.julius ];
   };
 
   security.sudo.extraRules = [{

@@ -1,4 +1,7 @@
 { pkgs, ... }:
+let
+  ssh-keys = import ../lib/ssh-keys.nix;
+in
 {
   nix.settings.experimental-features = [ "flakes" "nix-command" ];
 
@@ -22,9 +25,9 @@
   };
 
   users.users.root.openssh.authorizedKeys.keys = [
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBWZVz+NY4jhXnFoIw6O7ZTMzUdDmECXIBWTth1j6cw work@rakka"
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG1/FazxEZSGjnfqaR5tM8aifZCY+hns1DfCo87z8Hr1 marc@LWM"
-
+    ssh-keys.julius
+    ssh-keys.marc
+    ssh-keys.martin
   ];
 
   networking.firewall.enable = true;
