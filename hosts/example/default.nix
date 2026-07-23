@@ -4,6 +4,9 @@
 
   networking.hostName = "example";
 
+  # Machine -> address mapping used by ./fleet.
+  deployment.targetHost = "192.0.2.10";
+
   users.users.admin = {
     isNormalUser = true;
     extraGroups = [ "wheel" "docker" ];

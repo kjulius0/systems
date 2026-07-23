@@ -1,0 +1,195 @@
+#!/usr/bin/env bash
+# fleet — build, deploy, and install the NixOS hosts defined in this flake.
+#
+# Host -> address mapping lives in each host's config:
+#   deployment.targetHost = "1.2.3.4";        (required for deploy/ssh/install)
+#   deployment.targetUser = "root";           (deploy user, default root)
+#   deployment.sshUser = "admin";             (interactive ssh user, default admin)
+#
+# Builds happen locally unless the host's platform can't be built here
+# (macOS -> x86_64-linux); force with `deploy --build-remote/--build-local`.
+set -euo pipefail
+
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
+die() { echo "fleet: error: $*" >&2; exit 1; }
+
+usage() {
+  cat <<'EOF'
+usage: fleet <command> [args]
+
+commands:
+  list                          show hosts and their deployment targets
+  build <host>...               build system closure(s) locally, don't deploy
+  deploy [opts] <host>...|--all push config and activate
+                                mode: --switch (default) | --dry
+                                build placement: auto (local unless the host's
+                                platform differs); force with --build-remote |
+                                --build-local
+  install <host> [ip] [key]     fresh install via nixos-anywhere
+                                (ip defaults to deployment.targetHost)
+  ssh <host> [cmd...]           open a shell / run a command on a host
+  update                        update flake inputs and commit the lock file
+EOF
+  exit "${1:-0}"
+}
+
+# All host names defined in the flake, one per line.
+all_hosts() {
+  nix eval --raw .#nixosConfigurations \
+    --apply 'cs: builtins.concatStringsSep "\n" (builtins.attrNames cs)'
+}
+
+require_host() {
+  all_hosts | grep -qxF -- "$1" \
+    || die "unknown host '$1' (known: $(all_hosts | paste -sd' ' -))"
+}
+
+# Prints: targetHost|targetUser|sshUser|system
+# '|' because tab is IFS whitespace: read would strip a leading empty field.
+metadata() {
+  nix eval --raw ".#nixosConfigurations.\"$1\".config" --apply '
+    c: builtins.concatStringsSep "|" [
+      (toString c.deployment.targetHost)
+      c.deployment.targetUser
+      c.deployment.sshUser
+      c.nixpkgs.hostPlatform.system
+    ]'
+}
+
+# Loads metadata for $1 into TARGET_HOST/TARGET_USER/SSH_USER/HOST_SYSTEM
+# and requires targetHost to be set.
+load_target() {
+  require_host "$1"
+  local meta
+  meta=$(metadata "$1") # command substitution so an eval failure aborts here
+  IFS='|' read -r TARGET_HOST TARGET_USER SSH_USER HOST_SYSTEM <<< "$meta" || true
+  [ -n "$TARGET_HOST" ] \
+    || die "deployment.targetHost is not set for '$1' — add it in hosts/$1/default.nix"
+}
+
+cmd_list() {
+  nix eval --raw .#nixosConfigurations --apply '
+    cs: builtins.concatStringsSep "\n" (builtins.attrValues (builtins.mapAttrs
+      (name: c:
+        let d = c.config.deployment; in
+        builtins.concatStringsSep "\t" [
+          name
+          (if d.targetHost == null then "(unset)" else "${d.targetUser}@${d.targetHost}")
+          c.config.nixpkgs.hostPlatform.system
+        ])
+      cs))' \
+  | column -t -s $'\t'
+}
+
+cmd_build() {
+  [ $# -ge 1 ] || usage 1
+  local host
+  for host in "$@"; do
+    require_host "$host"
+    echo "fleet: building $host ..."
+    nix build ".#nixosConfigurations.\"$host\".config.system.build.toplevel" \
+      -o "result-$host"
+    echo "fleet: built $host -> $(readlink "result-$host")"
+  done
+}
+
+cmd_deploy() {
+  local mode=switch force_build="" all=""
+  while :; do
+    case "${1:-}" in
+      --switch)       mode=switch; shift ;;
+      --dry)          mode=dry-activate; shift ;;
+      --build-remote) force_build=remote; shift ;;
+      --build-local)  force_build=local; shift ;;
+      --all)          all=1; shift ;;
+      -*)             die "unknown deploy flag '$1'" ;;
+      *) break ;;
+    esac
+  done
+
+  local -a hosts=()
+  if [ -n "$all" ]; then
+    [ $# -eq 0 ] || die "--all takes no host arguments (got: $*)"
+    # `|| [ -n "$h" ]`: keep the last line even without a trailing newline
+    while IFS= read -r h || [ -n "$h" ]; do hosts+=("$h"); done < <(all_hosts)
+  else
+    hosts=("$@")
+  fi
+  [ ${#hosts[@]} -ge 1 ] || usage 1
+
+  # Build locally unless the host's platform can't be built here (e.g. macOS
+  # deploying x86_64-linux). --build-remote/--build-local force it; the
+  # detected local system can be overridden with FLEET_LOCAL_SYSTEM
+  # (e.g. when nix.linux-builder is set up on a Mac).
+  local local_system
+  local_system=${FLEET_LOCAL_SYSTEM:-$(nix config show system)}
+
+  local host build_where
+  for host in "${hosts[@]}"; do
+    load_target "$host"
+
+    build_where=local
+    if [ "$HOST_SYSTEM" != "$local_system" ]; then
+      [ -z "$force_build" ] \
+        && echo "fleet: cannot build $HOST_SYSTEM on $local_system, building on target"
+      build_where=remote
+    fi
+    build_where=${force_build:-$build_where}
+
+    echo "fleet: $mode $host -> $TARGET_USER@$TARGET_HOST ($build_where build)"
+
+    local -a args=(
+      "$mode"
+      --flake ".#$host"
+      --target-host "$TARGET_USER@$TARGET_HOST"
+    )
+    [ "$build_where" = remote ] && args+=(--build-host "$TARGET_USER@$TARGET_HOST")
+    [ "$TARGET_USER" != root ] && args+=(--use-remote-sudo)
+
+    nix run nixpkgs#nixos-rebuild -- "${args[@]}"
+  done
+}
+
+cmd_install() {
+  [ $# -ge 1 ] || usage 1
+  local host=$1 ip=${2:-} key=${3:-$HOME/.ssh/id_ed25519}
+  require_host "$host"
+  if [ -z "$ip" ]; then
+    load_target "$host"
+    ip=$TARGET_HOST
+  fi
+  echo "fleet: installing $host onto root@$ip (THIS WIPES THE DISK)"
+  read -rp "type '$host' to confirm: " confirm
+  [ "$confirm" = "$host" ] || die "aborted"
+  SSH_AUTH_SOCK= nix run github:nix-community/nixos-anywhere -- \
+    --flake ".#$host" -i "$key" "root@$ip"
+}
+
+cmd_ssh() {
+  [ $# -ge 1 ] || usage 1
+  local host=$1; shift
+  load_target "$host"
+  exec ssh "$SSH_USER@$TARGET_HOST" "$@"
+}
+
+cmd_update() {
+  nix flake update
+  if git diff --quiet -- flake.lock; then
+    echo "fleet: flake.lock unchanged"
+    return 0
+  fi
+  git add flake.lock
+  git commit -m "flake: update inputs"
+}
+
+case "${1:-}" in
+  list)    shift; cmd_list "$@" ;;
+  build)   shift; cmd_build "$@" ;;
+  deploy)  shift; cmd_deploy "$@" ;;
+  install) shift; cmd_install "$@" ;;
+  ssh)     shift; cmd_ssh "$@" ;;
+  update)  shift; cmd_update "$@" ;;
+  -h|--help|help) usage ;;
+  *) usage 1 ;;
+esac

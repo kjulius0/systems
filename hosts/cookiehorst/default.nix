@@ -7,7 +7,12 @@ in
 
   networking.hostName = "cookiehorst";
 
+  deployment.targetHost = "167.235.51.81";
+
   environment.systemPackages = with pkgs; [ go-task ];
+
+  # Lets generic dynamically-linked binaries run (VS Code remote server, etc.).
+  programs.nix-ld.enable = true;
 
   services.s3fs = {
     enable = true;
@@ -31,6 +36,7 @@ in
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBWZVz+NY4jhXnFoIw6O7ZTMzUdDmECXIBWTth1j6cw work@rakka"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG1/FazxEZSGjnfqaR5tM8aifZCY+hns1DfCo87z8Hr1 marc@LWM"
+      "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDH+pv7lWWRLdDpT7CvEI4ko2czgP1dmxY6hW4FRTUEVsP9FjG0JqZMos0Z38lXAfLUweshj0wqTHmCsKNSLFFDy5suYMKA9FfuZ+xe4y8LqO3gXBIOErTCy6NgvRyOfYtsHkxAubZxg/jU67XpOLARNd+erYATH+U+Ch7DrFwWnmJJBu2L0wo42k9Xno0wlxCBPweYCq1O2cHTAVPW86C7byqiWGEOx3FVm6VBLtYmpjLHMtvJlJZKcBFekJAoI+yDIlQRPqWqsrSrKdejn/8RmERPevnUVfQ17XzowOpxfhnhuCRNsQGLE/1pL6ScFoiVZhEsg1tCdnEd8p0ejTnX52tWNi82yNASDQ7RNvoS73Rs6UP6yls6/V317ZXdfg6UoiE1ZOtwFixcOat3N23AfVzIjOK/qCa4xd/VS6r4th2idDJ11aqOciPbQM+4cu3fEqrfpHZt/6sehik2F5N607nWextMXkkFNZgDHBGzg+jj7nujhIKF+jDqG3CfTuk= martinhanewald@MBP-von-Martin.fritz.box"
     ];
   };
 
