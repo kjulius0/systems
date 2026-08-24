@@ -19,6 +19,7 @@
         # example = mkHost "example";
         cookiehorst = mkHost "cookiehorst";
         fortress = mkHost "fortress";
+        violetta = mkHost "violetta";
       };
     };
 }
