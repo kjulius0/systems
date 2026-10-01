@@ -1,0 +1,18 @@
+{
+  "welcomepage": {
+    "headerTitle": "Kanzlei Violett",
+    "headerSubtitle": "Videokonferenz für Ihr Mandantengespräch",
+    "title": "Kanzlei Violett – Videokonferenz",
+    "appDescription": "Sichere Videogespräche mit der Kanzlei Violett. Sie haben einen Link von uns erhalten? Dann öffnen Sie ihn einfach – kein Konto, keine Installation nötig.",
+    "startMeeting": "Konferenz starten",
+    "roomname": "Konferenzname eingeben",
+    "recentList": "Verlauf",
+    "moderatedMessage": "",
+    "getHelp": "Hilfe",
+    "terms": "Impressum",
+    "privacy": "Datenschutz"
+  },
+  "prejoin": {
+    "joinMeeting": "Konferenz beitreten"
+  }
+}

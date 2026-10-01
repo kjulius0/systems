@@ -7,11 +7,14 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    # Only for hosts that need newer packages than the stable channel
+    # (violetta: Jitsi). Hosts opt in per package; the system stays stable.
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
-  outputs = inputs@{ nixpkgs, disko, ... }:
+  outputs = inputs@{ nixpkgs, nixpkgs-unstable, disko, ... }:
     let
-      mkHost = import ./lib/mkHost.nix { inherit nixpkgs disko; };
+      mkHost = import ./lib/mkHost.nix { inherit nixpkgs nixpkgs-unstable disko; };
     in
     {
       nixosConfigurations = {
