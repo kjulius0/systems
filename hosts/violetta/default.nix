@@ -1,12 +1,13 @@
-# violetta — Wodanio VPS (app.ultraviolet.law in ~/.ssh/config; no public DNS).
-# Workload: Jitsi Meet (./jitsi.nix). Merged from the config Martin deployed
-# via /etc/nixos on 2026-09-16; deploy only from this repo from now on.
+# violetta — Wodanio VPS, 91.24.43.181 (app.ultraviolet.law: public DNS and ~/.ssh/config alias).
+# Workload: Jitsi Meet (./jitsi.nix), agentnet on app.ultraviolet.law
+# (./agentnet.nix).
 { ... }:
 {
   imports = [
     ./hardware.nix
     ./jitsi.nix
     ./jitsi-unstable.nix
+    ./agentnet.nix
   ];
 
   networking.hostName = "violetta";
