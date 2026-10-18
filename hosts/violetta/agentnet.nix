@@ -15,6 +15,12 @@ in
     # ZITADEL_ISSUER/_PAT/_ORG_ID, MJ_APIKEY_PUBLIC/_PRIVATE,
     # MAIL_FROM_EMAIL/_NAME, PUBLIC_BASE_URL
     environmentFile = "/etc/agentnet/env";
+    # firms' own client portal addresses (CNAME to portal.ultraviolet.law):
+    # nginx answers other hostnames with certificates fetched on demand
+    portalDomains = {
+      enable = true;
+      target = "portal.ultraviolet.law";
+    };
   };
 
   services.nginx.virtualHosts.${host} = {
