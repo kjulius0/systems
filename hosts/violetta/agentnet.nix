@@ -1,5 +1,6 @@
 # agentnet on app.ultraviolet.law: the service from the agentnet flake,
-# behind nginx (TLS via ACME, basic auth — agentnet itself has no login).
+# behind nginx (TLS via ACME). No basic auth: agentnet has its own login
+# (Zitadel) and clients reach the client portal directly.
 { agentnet, config, ... }:
 let
   host = "app.ultraviolet.law";
@@ -10,15 +11,15 @@ in
   services.agentnet = {
     enable = true;
     inherit host;
+    # DATABASE_URL, SECRET_KEY_BASE, BIFROST_API_KEY, TOKEN_KEY,
+    # ZITADEL_ISSUER/_PAT/_ORG_ID, MJ_APIKEY_PUBLIC/_PRIVATE,
+    # MAIL_FROM_EMAIL/_NAME, PUBLIC_BASE_URL
     environmentFile = "/etc/agentnet/env";
   };
 
   services.nginx.virtualHosts.${host} = {
     enableACME = true;
     forceSSL = true;
-    # the module exempts /.well-known/acme-challenge (auth_basic off), so
-    # certificate renewal keeps working
-    basicAuthFile = "/etc/agentnet-htpasswd";
     locations."/" = {
       proxyPass = "http://127.0.0.1:${toString config.services.agentnet.port}";
       # LiveView runs over a websocket
