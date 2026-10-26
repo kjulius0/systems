@@ -38,8 +38,13 @@
   # Proxmox console/status/shutdown integration.
   services.qemuGuest.enable = true;
 
-  # 3.8 GiB RAM, no disk swap.
+  # compressed swap in RAM first (zram, priority 5); the swap file on disk
+  # only catches what no longer fits, so a peak of agent sessions slows the
+  # VM down instead of the OOM killer ending a process
   zramSwap.enable = true;
+  swapDevices = [
+    { device = "/var/lib/swapfile"; size = 8 * 1024; priority = 1; }
+  ];
 
   nixpkgs.hostPlatform = "x86_64-linux";
 }
