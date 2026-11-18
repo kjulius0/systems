@@ -6,11 +6,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1795004257,
-        "narHash": "sha256-S8UpekDBGwVw0TWtnXuR7SGWEtU3jGQj1jBuc3fYRJk=",
+        "lastModified": 1795018730,
+        "narHash": "sha256-9xAyqf6KC9jB2J1OucFeiIjMc59XBYmf+vsroEz3G9o=",
         "ref": "full-prototype",
-        "rev": "991b8e240d2309937ff466f484f5e91de587f73c",
-        "revCount": 357,
+        "rev": "4627834c36fc7f71c410b7fd8cc79e5875aa1b89",
+        "revCount": 362,
         "type": "git",
         "url": "ssh://git@github.com.private/wintermute-cell/agentnet"
       },
