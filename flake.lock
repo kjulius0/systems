@@ -12,12 +12,12 @@
         "rev": "9a25bd9a8ebe7a4e48915e335c8b4c79e138485d",
         "revCount": 399,
         "type": "git",
-        "url": "ssh://git@github.com.private/wintermute-cell/agentnet"
+        "url": "ssh://git@github.com/simply-Legal/agentnet"
       },
       "original": {
         "ref": "full-prototype",
         "type": "git",
-        "url": "ssh://git@github.com.private/wintermute-cell/agentnet"
+        "url": "ssh://git@github.com/simply-Legal/agentnet"
       }
     },
     "bun2nix": {

@@ -11,7 +11,7 @@
     # (violetta: Jitsi). Hosts opt in per package; the system stays stable.
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     # the full prototype (login, tenancy, client portal) lives on this branch
-    agentnet.url = "git+ssh://git@github.com.private/wintermute-cell/agentnet?ref=full-prototype";
+    agentnet.url = "git+ssh://git@github.com/simply-Legal/agentnet?ref=full-prototype";
   };
 
   outputs =
