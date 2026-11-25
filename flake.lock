@@ -6,11 +6,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1795515649,
-        "narHash": "sha256-67p1ySKnQqXAU+LM6ClzHog4s+qPVcew1h6mFpnUQCY=",
+        "lastModified": 1795609831,
+        "narHash": "sha256-Q63zqs/wCzNJ1KFIpSTPl4758cpm1/4vzRb4of0Jp8E=",
         "ref": "full-prototype",
-        "rev": "1a7e63bae3f03c0ea52121cd940d835e694f600e",
-        "revCount": 405,
+        "rev": "90362f940717987c41c923d2f615ea1efbee5634",
+        "revCount": 417,
         "type": "git",
         "url": "ssh://git@github.com/simply-Legal/agentnet"
       },
